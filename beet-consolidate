@@ -1,28 +1,6 @@
 #!/usr/bin/python3
-import os, os.path, sqlite3, re, shutil, filecmp
-
-confpath=os.path.join(os.getenv("XDG_CONFIG_HOME",default=os.path.join(os.getenv("HOME", default="~"),"config")),"beets","config.yaml")
-
-dirpath = None
-dbpath = None
-with open(confpath,'r') as f:
-    # use re to parse YAML
-    for line in f:
-        m = re.match ("^directory:\s*(\S*)\s*$",line)
-        if m:
-            dirpath = os.path.expanduser(m.group(1))
-        m = re.match ("^library:\s*(\S*)\s*$",line)
-        if m:
-            dbpath = os.path.expanduser(m.group(1))
-
-if not dirpath:
-    print ("directory not specified in config file")
-    exit(1)
-
-if not dbpath:
-    print ("library not specified in config file")
-    exit(1)
-    
+import os, os.path, re, shutil, filecmp, beets
+  
 def clean(s):
     return s.replace(":","_").replace("?","_").replace("/","_")
 
@@ -47,19 +25,16 @@ class AlbumRow:
     def desc(self):
         return str(self.row_id)+": "+self.artist_name+"/"+self.album_name
 
-with sqlite3.connect(dbpath) as conn:
-    
-    for (item,title,album) in conn.execute("SELECT items.id,items.title,items.album_id FROM items LEFT OUTER JOIN albums ON items.album_id = albums.id WHERE albums.id IS NULL"):
-        print ("Missing album id "+str(album)+": "+title)
+with beets.connect() as conn:
     
     def merge(album_guid,p,q):
     
         prelpath = p.path(False)
-        ppath = os.path.join(dirpath,prelpath)
+        ppath = os.path.join(beets.dirpath,prelpath)
         if not os.path.isdir(ppath):
             return False
         qrelpath = q.path(True)
-        qpath = os.path.join(dirpath,qrelpath)
+        qpath = os.path.join(beets.dirpath,qrelpath)
         if not os.path.isdir(qpath):
             return False
         
