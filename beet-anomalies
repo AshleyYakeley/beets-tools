@@ -11,7 +11,7 @@ with beets.connect() as conn:
         print ("  " + a_artist + " - " + a_album)
         print ("  " + b_artist + " - " + b_album)
 
-    for (a_guid,b_guid,artist,album) in conn.execute("SELECT a.mb_albumid, b.mb_albumid, a.albumartist, a.album FROM albums AS a, albums AS b WHERE a.albumartist = b.albumartist AND a.album = b.album AND b.mb_albumid > a.mb_albumid"):
+    for (a_guid,b_guid,artist,album) in conn.execute("SELECT a.mb_albumid, b.mb_albumid, a.albumartist, a.album FROM albums AS a, albums AS b WHERE a.albumartist = b.albumartist AND a.album = b.album AND b.mb_albumid > a.mb_albumid ORDER BY a.albumartist ASC, a.album ASC"):
         print ("Similar albums: " + artist + " - " + album )
         print ("  " + a_guid)
         print ("  " + b_guid)

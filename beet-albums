@@ -1,2 +1,2 @@
 #!/bin/sh
-beet list -a -f '$mb_albumid: $album' $*
+beet list -a -f '$mb_albumid: $albumartist - $album' $*
