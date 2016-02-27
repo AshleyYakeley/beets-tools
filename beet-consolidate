@@ -5,11 +5,9 @@ with beets.connect() as conn:
     
     def merge(album_guid,p,q):
     
-        (prelpath,ppath,pextra) = p.paths()
-        if pextra is not "":
-            return False
-        (qrelpath,qpath,qextra) = q.paths()
-        if qextra is "":
+        (prelpath,ppath,pextra,plevel) = p.paths()
+        (qrelpath,qpath,qextra,qlevel) = q.paths()
+        if plevel >= qlevel:
             return False
         
         print ("Merging " + album_guid + ":")
@@ -68,5 +66,5 @@ with beets.connect() as conn:
             pass
         else:
             print ("Couldn't match:")
-            print ("  "+a.desc())
-            print ("  "+b.desc())
+            print ("  "+a.desc)
+            print ("  "+b.desc)

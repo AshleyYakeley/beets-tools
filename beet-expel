@@ -12,7 +12,7 @@ with beets.connect() as conn:
         if paths is None:
             print ("Can't find path for " + album.name)
         else:
-            (relpath,abspath,extra) = paths
+            (relpath,abspath,extra,level) = paths
             print("Expelling " + album.name)
             filenames = sorted(os.listdir(abspath))
             for fname in filenames:

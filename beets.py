@@ -59,24 +59,24 @@ class Album:
         artistpath = self.clean_artist_name()
         albumpath = clean(self.album_name)
     
-        def test_path(extra):
+        def test_path(extra,level):
             relpath = os.path.join(artistpath,albumpath + extra)
             abspath = os.path.join(dirpath,relpath)
             if os.path.isdir(abspath):
-                return (relpath,abspath,extra)
+                return (relpath,abspath,extra,level)
             else:
                 return None
         
-        paths = test_path(" " + str(self.row_id))
+        paths = test_path(" " + str(self.row_id),3)
         if paths is not None:
             return paths
-        paths = test_path(" [" + str(self.row["year"]) +"]")
+        paths = test_path(" [" + str(self.row["year"]) +"]",2)
         if paths is not None:
             return paths
-        paths = test_path(" [" + self.row["label"] +"]")
+        paths = test_path(" [" + self.row["label"] +"]",1)
         if paths is not None:
             return paths
-        paths = test_path("")
+        paths = test_path("",0)
         if paths is not None:
             return paths
         return None
