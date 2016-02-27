@@ -24,4 +24,60 @@ if not dbpath:
     exit(1)
 
 def connect():
-    return sqlite3.connect(dbpath)
+    conn = sqlite3.connect(dbpath)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def clean(s):
+    return s.replace(":","_").replace("?","_").replace("/","_")
+
+class Album:
+    def __init__(self,conn,id):
+        (row,) = conn.execute("SELECT * FROM albums WHERE id=?",[id])
+        self.row = row
+        self.row_id = id
+        self.guid = row["mb_albumid"]
+        self.artist_name = row["albumartist"]
+        self.album_name = row["album"]
+        self.name = self.artist_name+" - "+self.album_name
+        self.desc = str(id)+": "+self.name
+
+    def clean_artist_name(self):
+        if self.artist_name == "Various Artists":
+            return "Compilations"
+        else:
+            return clean(self.artist_name)
+
+    def item_count(self,conn):
+        ((count,),) = conn.execute("SELECT COUNT(*) FROM items WHERE album_id = ?",[self.row_id])
+        return count
+
+    def items(self,conn):
+        return conn.execute("SELECT * FROM items WHERE album_id = ? ORDER BY track ASC",[self.row_id])
+
+    def paths(self):
+        artistpath = self.clean_artist_name()
+        albumpath = clean(self.album_name)
+    
+        def test_path(extra):
+            relpath = os.path.join(artistpath,albumpath + extra)
+            abspath = os.path.join(dirpath,relpath)
+            if os.path.isdir(abspath):
+                return (relpath,abspath,extra)
+            else:
+                return None
+        
+        paths = test_path(" " + str(self.row_id))
+        if paths is not None:
+            return paths
+        paths = test_path(" [" + str(self.row["year"]) +"]")
+        if paths is not None:
+            return paths
+        paths = test_path(" [" + self.row["label"] +"]")
+        if paths is not None:
+            return paths
+        paths = test_path("")
+        if paths is not None:
+            return paths
+        return None
+

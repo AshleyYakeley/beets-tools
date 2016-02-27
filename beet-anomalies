@@ -7,11 +7,17 @@ with beets.connect() as conn:
         print ("Missing album: id "+str(item)+" "+title)    
 
     for (album_guid,a_artist,a_album,b_artist,b_album) in conn.execute("SELECT a.mb_albumid, a.albumartist, a.album, b.albumartist, b.album FROM albums AS a, albums AS b WHERE a.mb_albumid = b.mb_albumid AND b.id > a.id"):
-        print ("Duplicate album: " + album_guid )
+        print ("Duplicate album: " + album_guid)
         print ("  " + a_artist + " - " + a_album)
         print ("  " + b_artist + " - " + b_album)
 
-    for (a_guid,b_guid,artist,album) in conn.execute("SELECT a.mb_albumid, b.mb_albumid, a.albumartist, a.album FROM albums AS a, albums AS b WHERE a.albumartist = b.albumartist AND a.album = b.album AND b.mb_albumid > a.mb_albumid ORDER BY a.albumartist ASC, a.album ASC"):
-        print ("Similar albums: " + artist + " - " + album )
-        print ("  " + a_guid)
-        print ("  " + b_guid)
+    def print_album(album):
+        itemcount = album.item_count(conn)
+        print ("  " + album.guid + ": " + album.row["albumstatus"] + " " + str(album.row["year"]) + " " + album.row["label"] + " " + album.row["country"] + " " + album.row["media"] + ", " + str(itemcount) +"/" + str(album.row["tracktotal"]) + " tracks")
+        for item in album.items(conn):
+            print ("    " + str(item["track"]) + " " + item["title"])
+
+    for (a_id,b_id,artist,album) in conn.execute("SELECT a.id, b.id, a.albumartist, a.album FROM albums AS a, albums AS b WHERE a.albumartist = b.albumartist AND a.album = b.album AND b.mb_albumid > a.mb_albumid ORDER BY a.albumartist ASC, a.album ASC"):
+        print ("Similar albums: " + artist + " - " + album)
+        print_album(beets.Album(conn,a_id))
+        print_album(beets.Album(conn,b_id))

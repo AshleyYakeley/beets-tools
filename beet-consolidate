@@ -1,41 +1,15 @@
 #!/usr/bin/python3
 import os, os.path, re, shutil, filecmp, beets
-  
-def clean(s):
-    return s.replace(":","_").replace("?","_").replace("/","_")
-
-class AlbumRow:
-    def __init__(self,row_id,artist_name,album_name):
-        self.row_id = row_id
-        self.artist_name = artist_name
-        self.album_name = album_name
-
-    def clean_artist_name(self):
-        if self.artist_name == "Various Artists":
-            return "Compilations"
-        else:
-            return clean(self.artist_name)
-
-    def path(self,with_row):
-        albumpath = clean(self.album_name)
-        if with_row:
-            albumpath = albumpath + " " + str(self.row_id)
-        return os.path.join(self.clean_artist_name(),albumpath)
-
-    def desc(self):
-        return str(self.row_id)+": "+self.artist_name+"/"+self.album_name
 
 with beets.connect() as conn:
     
     def merge(album_guid,p,q):
     
-        prelpath = p.path(False)
-        ppath = os.path.join(beets.dirpath,prelpath)
-        if not os.path.isdir(ppath):
+        (prelpath,ppath,pextra) = p.paths()
+        if pextra is not "":
             return False
-        qrelpath = q.path(True)
-        qpath = os.path.join(beets.dirpath,qrelpath)
-        if not os.path.isdir(qpath):
+        (qrelpath,qpath,qextra) = q.paths()
+        if qextra is "":
             return False
         
         print ("Merging " + album_guid + ":")
@@ -83,10 +57,10 @@ with beets.connect() as conn:
         return True
         
     
-    for (album_guid,a_id,a_artist,a_album,b_id,b_artist,b_album) in conn.execute("SELECT a.mb_albumid, a.id, a.albumartist, a.album, b.id, b.albumartist, b.album FROM albums AS a, albums AS b WHERE a.mb_albumid = b.mb_albumid AND b.id > a.id"):
+    for (album_guid,a_id,b_id) in conn.execute("SELECT a.mb_albumid, a.id, b.id FROM albums AS a, albums AS b WHERE a.mb_albumid = b.mb_albumid AND b.id > a.id"):
 
-        a = AlbumRow(a_id,a_artist,a_album)
-        b = AlbumRow(b_id,b_artist,b_album)
+        a = beets.Album(conn,a_id)
+        b = beets.Album(conn,b_id)
 
         if merge(album_guid,a,b):
             pass
