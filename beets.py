@@ -42,6 +42,35 @@ class Album:
         self.name = self.artist_name+" - "+self.album_name
         self.desc = str(id)+": "+self.name
 
+        artistpath = self.clean_artist_name()
+        albumpath = clean(self.album_name)
+    
+        def test_path(extra,level):
+            relpath = os.path.join(artistpath,albumpath + extra)
+            abspath = os.path.join(dirpath,relpath)
+            if os.path.isdir(abspath):
+                self.rel_path = relpath
+                self.abs_path = abspath
+                self.path_extra = extra
+                self.path_level = level
+                return True
+            else:
+                return False
+        
+        if test_path(" " + str(id),4):
+            pass
+        elif test_path(" [" + str(row["catalognum"]) +"]",3):
+            pass
+        elif test_path(" [" + str(row["year"]) +"]",2):
+            pass
+        elif test_path(" [" + row["label"] +"]",1):
+            pass
+        elif test_path("",0):
+            pass
+        else:
+            print(self.desc + ": cannot find path")
+            exit(1)
+
     def clean_artist_name(self):
         if self.artist_name == "Various Artists":
             return "Compilations"
@@ -54,30 +83,4 @@ class Album:
 
     def items(self,conn):
         return conn.execute("SELECT * FROM items WHERE album_id = ? ORDER BY track ASC",[self.row_id])
-
-    def paths(self):
-        artistpath = self.clean_artist_name()
-        albumpath = clean(self.album_name)
-    
-        def test_path(extra,level):
-            relpath = os.path.join(artistpath,albumpath + extra)
-            abspath = os.path.join(dirpath,relpath)
-            if os.path.isdir(abspath):
-                return (relpath,abspath,extra,level)
-            else:
-                return None
-        
-        paths = test_path(" " + str(self.row_id),3)
-        if paths is not None:
-            return paths
-        paths = test_path(" [" + str(self.row["year"]) +"]",2)
-        if paths is not None:
-            return paths
-        paths = test_path(" [" + self.row["label"] +"]",1)
-        if paths is not None:
-            return paths
-        paths = test_path("",0)
-        if paths is not None:
-            return paths
-        return None
 

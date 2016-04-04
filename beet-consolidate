@@ -5,25 +5,23 @@ with beets.connect() as conn:
     
     def merge(album_guid,p,q):
     
-        (prelpath,ppath,pextra,plevel) = p.paths()
-        (qrelpath,qpath,qextra,qlevel) = q.paths()
-        if plevel >= qlevel:
+        if p.path_level >= q.path_level:
             return False
         
         print ("Merging " + album_guid + ":")
-        print ("  " + qrelpath)
+        print ("  " + q.rel_path)
         print ("  into")
-        print ("  " + prelpath)
+        print ("  " + p.rel_path)
 
-        filenames = sorted(os.listdir(qpath))
+        filenames = sorted(os.listdir(q.abs_path))
         # scan for collisions first and remove duplicates
         collisions = False
         for fname in filenames:
-            qfpath = os.path.join(qpath,fname)
+            qfpath = os.path.join(q.abs_path,fname)
             if fname == "album.nfo":
                 pass
             else:
-                pfpath = os.path.join(ppath,fname)
+                pfpath = os.path.join(p.abs_path,fname)
                 if os.path.isfile(pfpath):
                     if filecmp.cmp(pfpath,qfpath):
                         print ("Duplicate: "+fname)
@@ -38,18 +36,18 @@ with beets.connect() as conn:
         else:
             print ("Merging...")
             for fname in filenames:
-                qfpath = os.path.join(qpath,fname)
+                qfpath = os.path.join(q.abs_path,fname)
                 if fname == "album.nfo":
                     os.remove(qfpath)
                 else:
-                    pfpath = os.path.join(ppath,fname)
+                    pfpath = os.path.join(p.abs_path,fname)
                     if os.path.isfile(pfpath):
                         os.remove(qfpath)
                     else:
                         os.rename(qfpath,pfpath)
             conn.execute("UPDATE items SET album_id=? WHERE album_id=?",[p.row_id,q.row_id])
             
-            os.rmdir(qpath)
+            os.rmdir(q.abs_path)
             conn.execute("DELETE FROM albums WHERE id=?",[q.row_id])
             conn.commit()
         return True

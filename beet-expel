@@ -8,22 +8,17 @@ args = parser.parse_args()
 with beets.connect() as conn:
     for (id,) in conn.execute("SELECT id FROM albums WHERE mb_albumid = ?",[args.GUID]):
         album = beets.Album(conn,id)
-        paths = album.paths()
-        if paths is None:
-            print ("Can't find path for " + album.name)
-        else:
-            (relpath,abspath,extra,level) = paths
-            print("Expelling " + album.name)
-            filenames = sorted(os.listdir(abspath))
-            for fname in filenames:
-                fpath = os.path.join(abspath,fname)
-                if fname == "album.nfo":
-                    os.remove(fpath)
-                else:
-                    newpath = os.path.join(".",fname)
-                    shutil.move(fpath,newpath)
-            os.rmdir(abspath)
-            conn.execute("DELETE FROM items WHERE album_id=?",[id])    
-            conn.execute("DELETE FROM albums WHERE id=?",[id])
-            conn.commit()
+        print("Expelling " + album.name)
+        filenames = sorted(os.listdir(album.abs_path))
+        for fname in filenames:
+            fpath = os.path.join(album.abs_path,fname)
+            if fname == "album.nfo":
+                os.remove(fpath)
+            else:
+                newpath = os.path.join(".",fname)
+                shutil.move(fpath,newpath)
+        os.rmdir(album.abs_path)
+        conn.execute("DELETE FROM items WHERE album_id=?",[id])    
+        conn.execute("DELETE FROM albums WHERE id=?",[id])
+        conn.commit()
 

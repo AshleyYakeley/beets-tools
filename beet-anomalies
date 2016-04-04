@@ -13,7 +13,7 @@ with beets.connect() as conn:
 
     def print_album(album):
         itemcount = album.item_count(conn)
-        print ("  " + album.guid + ": " + album.row["albumstatus"] + " " + str(album.row["year"]) + " " + album.row["label"] + " " + album.row["country"] + " " + album.row["media"] + ", " + str(itemcount) +"/" + str(album.row["tracktotal"]) + " tracks")
+        print ("  " + album.guid + ":" + album.path_extra + " " + album.row["albumstatus"] + " " + str(album.row["year"]) + " " + album.row["label"] + " " + album.row["country"] + " " + album.row["media"] + ", " + str(itemcount) +"/" + str(album.row["tracktotal"]) + " tracks")
         for item in album.items(conn):
             print ("    " + str(item["track"]) + " " + item["title"])
 
